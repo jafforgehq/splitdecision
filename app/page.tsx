@@ -382,6 +382,15 @@ export default function Home() {
         {/* Footer */}
         <div className="text-center text-zinc-600 text-xs mt-12 pt-6 border-t border-white/5">
           Built with {'\u2764\ufe0f'} using Next.js & OpenAI
+          <span className="mx-1.5">{'\u2022'}</span>
+          <a
+            href="https://github.com/jafforgehq/splitdecision"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Open Source on GitHub
+          </a>
         </div>
       </div>
 
