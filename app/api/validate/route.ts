@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { VALIDATION_SYSTEM_PROMPT } from '@/lib/config';
+import { moderateContent } from '@/lib/stream';
 import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
@@ -24,6 +25,13 @@ export async function POST(req: Request) {
 
   try {
     const client = new OpenAI({ apiKey });
+
+    // Content moderation check (free, fast)
+    const modResult = await moderateContent(`${optionA} ${optionB}`, client);
+    if (modResult.flagged) {
+      return Response.json({ valid: false, reason: modResult.reason });
+    }
+
     const response = await client.chat.completions.create({
       model: model || 'gpt-4o-mini',
       messages: [

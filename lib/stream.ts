@@ -11,6 +11,29 @@ import {
 } from './config';
 import { StreamRequest } from './types';
 
+// --- Content Moderation ---
+
+export async function moderateContent(
+  text: string,
+  client: OpenAI,
+): Promise<{ flagged: boolean; reason: string }> {
+  try {
+    const result = await client.moderations.create({ input: text });
+    const output = result.results[0];
+    if (!output.flagged) return { flagged: false, reason: '' };
+
+    const categories = Object.entries(output.categories)
+      .filter(([, v]) => v)
+      .map(([k]) => k.replace(/[/_]/g, ' '));
+    return {
+      flagged: true,
+      reason: `Content flagged for: ${categories.join(', ')}. Please keep it clean.`,
+    };
+  } catch {
+    return { flagged: false, reason: '' };
+  }
+}
+
 // --- Validation ---
 
 function parseValidationText(text: string): { valid: boolean; reason: string } {
@@ -30,6 +53,11 @@ export async function validateComparison(
   if (apiKey) {
     // Direct browser call — BYO key
     const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
+
+    // Content moderation check
+    const modResult = await moderateContent(`${optionA} ${optionB}`, client);
+    if (modResult.flagged) return { valid: false, reason: modResult.reason };
+
     const response = await client.chat.completions.create({
       model,
       messages: [
@@ -42,7 +70,7 @@ export async function validateComparison(
     return parseValidationText(response.choices[0]?.message?.content?.trim() || '');
   }
 
-  // API route call — free tier
+  // API route call — free tier (moderation runs server-side)
   const res = await fetch('/api/validate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
