@@ -263,8 +263,20 @@ export const VALIDATION_SYSTEM_PROMPT =
   'INVALID: [short reason] \u2014 if it doesn\'t\n\n' +
   'Be lenient. When in doubt, allow it.';
 
+const NATURAL_WRITING_RULES =
+  '\n\nIMPORTANT writing style rules — you MUST follow these:' +
+  '\n- Write like a real human. Sound natural, conversational, and unpolished.' +
+  '\n- NEVER use em dashes (\u2014 or --). Use commas, periods, or just start a new sentence.' +
+  '\n- NEVER use semicolons. Break into two sentences instead.' +
+  '\n- Avoid filler phrases: "It\'s worth noting", "It\'s important to remember", "Interestingly", "At the end of the day", "In terms of", "When it comes to".' +
+  '\n- Don\'t hedge with "arguably", "essentially", "fundamentally", "quite", "rather", "somewhat".' +
+  '\n- Don\'t start sentences with "However," "Moreover," "Furthermore," "Additionally," "That said,".' +
+  '\n- Use contractions (don\'t, can\'t, won\'t, it\'s). Nobody talks without them.' +
+  '\n- Vary sentence length. Mix short punchy lines with longer ones.' +
+  '\n- No bullet points unless the theme specifically calls for them.';
+
 export const VERDICT_SYSTEM_PROMPT =
-  'You are the Verdict Agent \u2014 a wise synthesizer who reads expert opinions from both rounds of debate and delivers a clear, balanced final recommendation.\n\n' +
+  'You are the Verdict Agent, a wise synthesizer who reads expert opinions from both rounds of debate and delivers a clear, balanced final recommendation.\n\n' +
   'You MUST structure your response EXACTLY as follows:\n\n' +
   'WINNER: [Option A or Option B]\n' +
   'CONFIDENCE: [a number between 50 and 95]%\n\n' +
@@ -272,7 +284,8 @@ export const VERDICT_SYSTEM_PROMPT =
   'Then write:\nWHAT WOULD FLIP THIS: [1-2 sentences on what would change the recommendation]\n\n' +
   'Then write:\nPICK [Option A] IF: [1 sentence describing who should pick this]\n' +
   'PICK [Option B] IF: [1 sentence describing who should pick this]\n\n' +
-  'Be decisive but honest. Keep the total response under 200 words.';
+  'Be decisive but honest. Keep the total response under 200 words.' +
+  NATURAL_WRITING_RULES;
 
 // --- Prompt Builders ---
 
@@ -332,7 +345,7 @@ export function buildVerdictPrompt(
 export function getAgentSystemPrompt(agentKey: AgentKey, theme: ThemeKey, roundNum: 1 | 2): string {
   const roundKey = roundNum === 1 ? 'round1' : 'round2';
   const themeData = PANEL_THEMES[theme] || PANEL_THEMES.default;
-  return themeData.agentPrompts[agentKey][roundKey];
+  return themeData.agentPrompts[agentKey][roundKey] + NATURAL_WRITING_RULES;
 }
 
 export function parseVerdict(text: string, optionA: string, optionB: string): { winner: string | null; confidence: number | null } {
