@@ -175,7 +175,7 @@ export default function ShareCard({
 
               {/* Footer */}
               <div className="text-center text-xs text-zinc-600">
-                splitdecision.app {'\u2022'} AI-powered debate
+                splitdecision.vercel.app {'\u2022'} AI-powered debate
               </div>
             </div>
 

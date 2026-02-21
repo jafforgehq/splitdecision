@@ -6,10 +6,9 @@ import {
   AGENTS,
   AGENT_ORDER,
   PANEL_THEMES,
-  DEFAULT_MODEL,
   parseVerdict,
 } from '@/lib/config';
-import { AgentKey, AgentMessage as AgentMessageType, VerdictData } from '@/lib/types';
+import { AgentMessage as AgentMessageType, VerdictData } from '@/lib/types';
 import { streamChat, validateComparison } from '@/lib/stream';
 import ComparisonInput, { InputState } from '@/components/ComparisonInput';
 import AgentMessage from '@/components/AgentMessage';
@@ -27,8 +26,6 @@ export default function Home() {
     optionB: '',
     category: 'General',
     theme: 'default',
-    apiKey: '',
-    model: DEFAULT_MODEL,
   });
   const [messages, setMessages] = useState<AgentMessageType[]>([]);
   const [verdict, setVerdict] = useState<VerdictData | null>(null);
@@ -98,7 +95,7 @@ export default function Home() {
 
     // --- Validate ---
     try {
-      const result = await validateComparison(a, b, input.apiKey || undefined, input.model);
+      const result = await validateComparison(a, b);
       if (!result.valid) {
         setError(
           `These don't make for a meaningful comparison: ${result.reason}\n\nTry comparing things in the same category or that serve a similar purpose.`,
@@ -114,7 +111,6 @@ export default function Home() {
 
     setPhase('debating');
     setShowVSSplash(true);
-    const apiKey = input.apiKey || undefined;
 
     // --- Round 1 ---
     setStatusText('Round 1: Agents are debating...');
@@ -131,7 +127,7 @@ export default function Home() {
 
       let fullText = '';
       try {
-        for await (const chunk of streamChat(apiKey, {
+        for await (const chunk of streamChat({
           type: 'agent',
           agentKey,
           theme: input.theme,
@@ -139,7 +135,6 @@ export default function Home() {
           optionA: a,
           optionB: b,
           category: input.category,
-          model: input.model,
         })) {
           if (abortRef.current) return;
           fullText += chunk;
@@ -174,7 +169,7 @@ export default function Home() {
 
       let fullText = '';
       try {
-        for await (const chunk of streamChat(apiKey, {
+        for await (const chunk of streamChat({
           type: 'agent',
           agentKey,
           theme: input.theme,
@@ -183,7 +178,6 @@ export default function Home() {
           optionB: b,
           category: input.category,
           round1Results,
-          model: input.model,
         })) {
           if (abortRef.current) return;
           fullText += chunk;
@@ -209,13 +203,12 @@ export default function Home() {
 
     let verdictText = '';
     try {
-      for await (const chunk of streamChat(apiKey, {
+      for await (const chunk of streamChat({
         type: 'verdict',
         optionA: a,
         optionB: b,
         round1Results,
         round2Results,
-        model: input.model,
       })) {
         if (abortRef.current) return;
         verdictText += chunk;

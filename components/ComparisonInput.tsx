@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { CATEGORIES, EXAMPLES, PANEL_THEMES, THEME_ORDER, MODELS, DEFAULT_MODEL } from '@/lib/config';
+import { CATEGORIES, EXAMPLES, PANEL_THEMES, THEME_ORDER } from '@/lib/config';
 import { ThemeKey } from '@/lib/types';
 
 export interface InputState {
@@ -9,8 +8,6 @@ export interface InputState {
   optionB: string;
   category: string;
   theme: ThemeKey;
-  apiKey: string;
-  model: string;
 }
 
 interface Props {
@@ -22,8 +19,6 @@ interface Props {
 }
 
 export default function ComparisonInput({ input, setInput, onCompare, isLoading, error }: Props) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
   const update = (field: keyof InputState, value: string) => {
     setInput((prev) => ({ ...prev, [field]: value }));
   };
@@ -101,44 +96,6 @@ export default function ComparisonInput({ input, setInput, onCompare, isLoading,
         </div>
       </div>
 
-      {/* Advanced settings */}
-      <button
-        onClick={() => setShowAdvanced(!showAdvanced)}
-        className="text-xs text-zinc-500 hover:text-zinc-300 mb-3 transition-colors"
-      >
-        {showAdvanced ? '\u25BE' : '\u25B8'} Advanced Settings
-      </button>
-
-      {showAdvanced && (
-        <div className="mb-5 p-4 bg-[#0d0d15] rounded-xl border border-[#1e1e2e] space-y-3">
-          <div>
-            <label className="block text-xs text-zinc-400 mb-1.5 font-medium">
-              OpenAI API Key <span className="text-zinc-600">(optional {'\u2014'} leave blank for free tier)</span>
-            </label>
-            <input
-              type="password"
-              value={input.apiKey}
-              onChange={(e) => update('apiKey', e.target.value)}
-              placeholder="sk-..."
-              className="w-full bg-[#13131a] border border-[#2a2a3a] rounded-xl px-4 py-2.5 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition-colors"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-zinc-400 mb-1.5 font-medium">Model</label>
-            <select
-              value={input.model}
-              onChange={(e) => update('model', e.target.value)}
-              className="w-full bg-[#13131a] border border-[#2a2a3a] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer"
-            >
-              {Object.entries(MODELS).map(([key, m]) => (
-                <option key={key} value={key}>{m.label}</option>
-              ))}
-            </select>
-            <p className="text-[0.65rem] text-zinc-600 mt-1">{MODELS[input.model]?.description}</p>
-          </div>
-        </div>
-      )}
-
       {/* Examples */}
       <div className="mb-5">
         <p className="text-xs text-zinc-500 mb-2 font-medium">Try these:</p>
@@ -170,12 +127,6 @@ export default function ComparisonInput({ input, setInput, onCompare, isLoading,
       >
         {isLoading ? 'Checking...' : '\u2694\ufe0f Compare'}
       </button>
-
-      {!input.apiKey && (
-        <p className="text-center text-[0.65rem] text-zinc-600 mt-2">
-          Free tier {'\u2014'} 5 comparisons/day {'\u2022'} Add your own API key for unlimited
-        </p>
-      )}
     </div>
   );
 }

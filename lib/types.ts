@@ -56,7 +56,6 @@ export type StreamRequest =
       optionB: string;
       category: string;
       round1Results?: Record<string, string>;
-      model?: string;
     }
   | {
       type: 'verdict';
@@ -64,5 +63,4 @@ export type StreamRequest =
       optionB: string;
       round1Results: Record<string, string>;
       round2Results: Record<string, string>;
-      model?: string;
     };

@@ -4,12 +4,6 @@ export const DEFAULT_MODEL = 'gpt-4o-mini';
 export const MAX_RESPONSE_TOKENS = 400;
 export const MAX_RESPONSE_TOKENS_R2 = 250;
 
-export const MODELS: Record<string, { label: string; description: string }> = {
-  'gpt-4o-mini': { label: 'GPT-4o Mini (Recommended)', description: 'Fast & cheap — great for most comparisons' },
-  'gpt-4.1-nano': { label: 'GPT-4.1 Nano', description: 'Cheapest option, less personality' },
-  'gpt-4.1-mini': { label: 'GPT-4.1 Mini', description: 'Newer model, good balance' },
-};
-
 export const AGENTS: Record<AgentKey, Agent> = {
   analyst: { name: 'The Analyst', emoji: '\u{1F4CA}', color: '#3b82f6' },
   contrarian: { name: 'The Contrarian', emoji: '\u{1F525}', color: '#ef4444' },

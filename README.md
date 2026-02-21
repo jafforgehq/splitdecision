@@ -1,132 +1,141 @@
 # SplitDecision
 
-Can't decide between two options? Let AI agents argue it out for you.
+AI agents debate two options and return a winner with confidence.
 
-SplitDecision is a web app where you enter two options (React vs Svelte, Tesla vs BMW, WFH vs Office — anything), and four AI agents with distinct personalities debate the merits of each in two rounds before delivering a final verdict with a confidence score.
+## Live App
 
-## How It Works
+- https://splitdecision.vercel.app/
+- Feel free to use it until I have credits left.
 
-1. **Enter two options** and pick a debate theme
-2. **Validation** — an AI check ensures the comparison is meaningful (no "banana vs SQL")
-3. **Round 1** — four agents give their initial takes, streamed in real-time:
-   - **The Analyst** — data-driven, cites specs and benchmarks
-   - **The Contrarian** — argues for the underdog, challenges assumptions
-   - **The Pragmatist** — speaks from hands-on experience
-   - **The Wildcard** — unexpected angles and creative takes
-4. **Round 2** — agents read each other's Round 1 takes and respond with rebuttals
-5. **Verdict** — a synthesizer agent reads all arguments and picks a winner with a confidence percentage
+## What It Does
 
-The entire debate streams token-by-token so you can watch it unfold live.
+SplitDecision lets you compare two options (for example `React vs Svelte`) and watch a structured 2-round debate between 4 agent personas:
 
-## Debate Themes
+- The Analyst
+- The Contrarian
+- The Pragmatist
+- The Wildcard
 
-Each theme changes the agents' personalities and speaking style:
+After both rounds, a verdict model picks a winner and assigns a confidence score.
 
-| Theme | Vibe |
-|-------|------|
-| Default Panel | Professional expert panel |
-| Startup Bros | Hustle culture meets VC energy |
-| Academic Panel | Peer-reviewed discourse and citations |
-| Bar Argument | Loud opinions and friendly roasting |
-| Shark Tank | Investment pitch evaluation |
-| Reddit Thread | Upvotes, hot takes, and "well actually..." |
-| Courtroom Trial | Legal drama debate |
-| Sports Commentary | Play-by-play breakdown |
-| Philosophy Seminar | Deep existential deliberation |
+## Current Feature Set
 
-## Features
-
-- **Real-time streaming** — all responses stream token-by-token via OpenAI's streaming API
-- **VS Splash** — fighting-game-style animation when a debate starts
-- **Confetti reveal** — verdict card bursts with confetti when the winner is announced
-- **Share card** — download your result as a PNG or share directly to X
-- **Trending feed** — recent comparisons from other users
-- **BYO API key** — paste your own OpenAI key for unlimited use, or use the free tier (5 comparisons/day)
-- **Multiple models** — supports GPT-4o Mini, GPT-4.1 Nano, and GPT-4.1 Mini
+- Real-time token streaming for all agent responses and verdict
+- Two debate rounds (initial takes + rebuttals)
+- 9 themed debate panels:
+  - Default Panel
+  - Startup Bros
+  - Academic Panel
+  - Bar Argument
+  - Shark Tank
+  - Reddit Thread
+  - Courtroom Trial
+  - Sports Commentary
+  - Philosophy Seminar
+- Input validation before debate starts
+- Content moderation check on submitted options
+- Server-side OpenAI key usage via environment variables
+- Fixed model: `gpt-4o-mini`
+- IP-based rate limiting
+- VS splash animation, verdict reveal animation, and confetti
+- Share modal: copy link, export PNG, share to X
+- Trending feed backed by Redis (`/api/comparisons`)
 
 ## Tech Stack
 
-- **Next.js 15** (App Router)
-- **React 19**
-- **OpenAI API** (GPT-4o Mini by default)
-- **Tailwind CSS** for styling
-- **Framer Motion** for animations
-- **Upstash Redis** for rate limiting and trending feed storage
-- **html2canvas** for share card image export
+- Next.js 15 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- OpenAI SDK
+- Upstash Redis + Upstash Ratelimit
+- html2canvas
 
-## Getting Started
+## API Endpoints
 
-### Prerequisites
+- `POST /api/validate` - validates comparison + moderates content
+- `POST /api/stream` - streams agent/verdict output
+- `GET /api/comparisons` - fetches recent comparisons
+- `POST /api/comparisons` - saves completed comparison results
 
-- Node.js 18+
-- An OpenAI API key
-- An Upstash Redis database (free tier works)
+## Project Structure
 
-### Setup
+```text
+app/
+  page.tsx                # main UI and debate orchestration
+  api/
+    stream/route.ts       # server-side streaming proxy + rate limit
+    validate/route.ts     # validation + moderation
+    comparisons/route.ts  # trending storage/retrieval
+
+components/
+  ComparisonInput.tsx
+  AgentMessage.tsx
+  VerdictCard.tsx
+  VSSplash.tsx
+  ShareCard.tsx
+  TrendingFeed.tsx
+
+lib/
+  config.ts               # agents, themes, prompts, parser config
+  stream.ts               # browser helpers for API validation/streaming
+  rate-limit.ts           # Upstash fixed-window limiter
+  redis.ts                # Redis helpers for recent comparisons
+  types.ts
+```
+
+## Local Development
+
+### 1. Install
 
 ```bash
-git clone https://github.com/jafforgehq/splitdecision.git
-cd splitdecision
 npm install
 ```
 
-Copy the example env file and fill in your keys:
+### 2. Configure env vars
+
+Copy example file:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-```
+Set values:
+
+```env
 OPENAI_API_KEY=sk-...
 DAILY_FREE_LIMIT=50
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
 ```
 
-### Run
+Notes:
+
+- `OPENAI_API_KEY` is used by server routes for all AI calls.
+- `DAILY_FREE_LIMIT` is a request limit per IP in a 24h window.
+- If `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are missing locally, Next.js may show Upstash warnings during build/start.
+
+### 3. Run
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open `http://localhost:3000`.
 
-### Deploy
+## Scripts
 
-Works out of the box on Vercel — just connect the GitHub repo and add your environment variables.
+- `npm run dev`
+- `npm run build`
+- `npm run start`
+- `npm run lint` (currently prompts for ESLint setup in this repo)
 
-## Architecture
+## Deployment
 
-```
-app/
-  page.tsx              — main UI, orchestrates the debate flow
-  layout.tsx            — metadata + OG tags
-  icon.tsx              — dynamic favicon
-  opengraph-image.tsx   — auto-generated OG image for social sharing
-  api/
-    stream/             — proxies OpenAI streaming for free-tier users
-    validate/           — comparison validation endpoint
-    comparisons/        — stores + retrieves recent comparisons
+Deployed on Vercel: `https://splitdecision.vercel.app/`
 
-components/
-  ComparisonInput.tsx   — form with options, theme picker, model selector
-  AgentMessage.tsx      — renders a single agent's streamed message
-  VerdictCard.tsx       — final verdict with confetti reveal animation
-  VSSplash.tsx          — full-screen VS animation overlay
-  ShareCard.tsx         — share modal with download + social sharing
-  TrendingFeed.tsx      — recent comparisons from other users
-
-lib/
-  config.ts             — agents, themes, prompt templates, verdict parser
-  types.ts              — TypeScript types
-  stream.ts             — streaming logic (direct for BYO key, API route for free tier)
-  rate-limit.ts         — Upstash-based rate limiting
-  redis.ts              — Redis client setup
-```
-
-## How Streaming Works
-
-When a user brings their own API key, the OpenAI SDK runs directly in the browser — no server round-trip. For free-tier users, requests go through `/api/stream` which proxies the OpenAI streaming response using the server's API key, with Upstash rate limiting per IP.
+To deploy your own instance, add the same env vars in Vercel project settings.
 
 ## License
 

@@ -5,6 +5,7 @@ import {
   buildRound2UserPrompt,
   buildVerdictPrompt,
   VERDICT_SYSTEM_PROMPT,
+  DEFAULT_MODEL,
   MAX_RESPONSE_TOKENS,
   MAX_RESPONSE_TOKENS_R2,
 } from '@/lib/config';
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
   const limit = await rateLimit(ip);
   if (!limit.ok) {
     return Response.json(
-      { error: 'Rate limit exceeded. Add your own API key in Advanced Settings for unlimited access.' },
+      { error: 'Rate limit exceeded. Please try again later.' },
       { status: 429 },
     );
   }
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return Response.json(
-      { error: 'Free tier is not configured on this server. Please add your own API key.' },
+      { error: 'Server OpenAI key is not configured.' },
       { status: 500 },
     );
   }
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
   try {
     const client = new OpenAI({ apiKey });
     const completion = await client.chat.completions.create({
-      model: body.model || 'gpt-4o-mini',
+      model: DEFAULT_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
